@@ -74,6 +74,8 @@ export default class LocationSearchHeader extends Component {
         position: 'absolute',
         left: collapsed ? 20 : 0,
         top: collapsed ? 60 : 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f1f1f1'
       },
       grayDot: {
         width: 7,

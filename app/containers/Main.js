@@ -1,7 +1,13 @@
 import React, { Component, PropTypes } from 'react'
 import {
-  StyleSheet, View, Image, StatusBar, TouchableWithoutFeedback,
-  Text, TextInput } from 'react-native'
+  StyleSheet,
+  View,
+  Image,
+  StatusBar,
+  TouchableWithoutFeedback,
+  Text,
+  TextInput
+} from 'react-native'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux';
 import * as actions from '../redux/actions';
@@ -17,23 +23,18 @@ import {
 
 const AnimatableImage = Animatable.createAnimatableComponent(Image);
 
-const mapStateToProps = (state) => ({
-  recentLocations: state.recentLocations,
-  shortcutLocations: state.recentLocations.slice(0, 3),
-  collapsed: state.locationSearchHeader.collapsed,
-});
-
-const mapActionsToProps = (dispatch) => {
-  return {
-    expandSearchHeader: bindActionCreators(actions.expandSearchHeader, dispatch),
-    collapseSearchHeader: bindActionCreators(actions.collapseSearchHeader, dispatch),
-  };
-};
-
 class Main extends Component {
 
   _handleExpandSearchHeader() {
     this.props.expandSearchHeader();
+    this.refs.hamburger.transitionTo({rotate: '180deg'});
+    this.refs.arrowLeft.transitionTo({rotate: '180deg'});
+  }
+
+  _handleCollapseSearchHeader() {
+    this.props.collapseSearchHeader();
+    this.refs.hamburger.transitionTo({rotate: '-180deg'});
+    this.refs.arrowLeft.transitionTo({rotate: '-180deg'});
   }
 
   _getStyle() {
@@ -61,10 +62,14 @@ class Main extends Component {
         top: 0,
       },
       ham: {
-        opacity: collapsed ? 1 : 0
+        opacity: collapsed ? 1 : 0,
+        width: 25,
+        height: 25,
       },
       arrow: {
-        opacity: collapsed ? 0 : 1
+        opacity: collapsed ? 0 : 1,
+        width: 25,
+        height: 25,
       }
     });
   }
@@ -79,35 +84,59 @@ class Main extends Component {
     const styles = this._getStyle();
 
     return (
-      <TouchableWithoutFeedback onPress={() => this.props.collapseSearchHeader()}>
-        <View style={styles.container}>
-          <StatusBar
-            barStyle="dark-content"
-          />
+      <View style={styles.container}>
+        <StatusBar
+          barStyle="dark-content"
+        />
 
-          <LocationSearchHeader
-            collapsed={collapsed}
-            expand={this._handleExpandSearchHeader.bind(this)}
-          />
+        <LocationSearchHeader
+          collapsed={collapsed}
+          expand={this._handleExpandSearchHeader.bind(this)}
+        />
 
-          <View style={styles.menuWrapper}>
+        <View style={styles.menuWrapper}>
+          <Animatable.View ref="hamburger" style={styles.menuIcon}>
             <AnimatableImage
               source={require('../images/icon-hamburger.png')}
-              style={[styles.menuIcon, styles.ham]}
+              style={[styles.ham]}
               transition={['opacity']}
             />
-            <AnimatableImage
-              source={require('../images/icon-arrow-left.png')}
-              style={[styles.menuIcon, styles.arrow]}
-              transition={['opacity']}
-            />
-          </View>
+          </Animatable.View>
 
+          <TouchableWithoutFeedback onPress={this._handleCollapseSearchHeader.bind(this)}>
+            <Animatable.View ref="arrowLeft" style={styles.menuIcon}>
+              <AnimatableImage
+                source={require('../images/icon-arrow-right.png')}
+                style={[styles.arrow]}
+                transition={['opacity']}
+              />
+            </Animatable.View>
+          </TouchableWithoutFeedback>
         </View>
-      </TouchableWithoutFeedback>
+
+        <LocationSearchResults
+          collapsed={collapsed}
+        >
+          <SearchResultsList data={this.props.recentLocations}/>
+        </LocationSearchResults>
+
+      </View>
     );
   }
 }
+
+const mapStateToProps = (state) => ({
+  recentLocations: state.recentLocations,
+  shortcutLocations: state.recentLocations.slice(0, 3),
+  collapsed: state.locationSearchHeader.collapsed,
+});
+
+const mapActionsToProps = (dispatch) => {
+  return {
+    expandSearchHeader: bindActionCreators(actions.expandSearchHeader, dispatch),
+    collapseSearchHeader: bindActionCreators(actions.collapseSearchHeader, dispatch),
+  };
+};
 
 export default connect(mapStateToProps, mapActionsToProps)(Main);
 
